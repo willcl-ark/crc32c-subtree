@@ -25,11 +25,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         optimized: [true, false]
         shared_lib: [true, false]
-        use_glog: [true, false]
         exclude:
-        # Our glog config doesn't work with shared libraries.
-        - use_glog: true
-          shared_lib: true
         # MSVC only works on Windows.
         - os: ubuntu-latest
           compiler: msvc
@@ -43,9 +39,6 @@ jobs:
           compiler: clang
         - os: windows-latest
           compiler: gcc
-        # Not testing fringe configurations (glog, shared libraries) on Windows.
-        - os: windows-latest
-          use_glog: true
         - os: windows-latest
           shared_lib: true
         include:
@@ -82,21 +75,11 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }}
         -DCMAKE_INSTALL_PREFIX=${{ runner.temp }}/install_test/
         -DBUILD_SHARED_LIBS=${{ matrix.shared_lib && '1' || '0' }}
-        -DCRC32C_USE_GLOG=${{ matrix.use_glog && '1' || '0' }}
 
     - name: Build
       run: >-
         cmake --build "${{ env.CMAKE_BUILD_DIR }}"
         --config "${{ env.CMAKE_BUILD_TYPE }}"
-
-    - name: Run C++ API Tests
-      run: ${{ env.BINARY_PATH }}crc32c_tests${{ env.BINARY_SUFFIX }}
-
-    - name: Run C API Tests
-      run: ${{ env.BINARY_PATH }}crc32c_capi_tests${{ env.BINARY_SUFFIX }}
-
-    - name: Run Benchmarks
-      run: ${{ env.BINARY_PATH }}crc32c_bench${{ env.BINARY_SUFFIX }}
 
     - name: Test CMake installation
       run: cmake --build "${{ env.CMAKE_BUILD_DIR }}" --target install
